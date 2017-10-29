@@ -17,6 +17,34 @@ GPIO.setup(A,GPIO.IN) #A
 import Adafruit_ADS1x15
 
 
+
+
+"""
+Steps - 
+Putty
+setup bashrc (with sudo alias), 10proxy
+sudo -E apt-get update
+sudo -E apt-get install python-dev
+sudo -E apt-get install git python-pip tightvnc 
+
+sudo -E date -s "Oct 30 07:20 2017"
+sudo -E pip install --upgrade pip
+sudo -E pip install adafruit-ads1x15
+Connect VNC
+
+
+R pi has specific SDA and SCL Pins
+GPIO 2 & 3
+
+Algo for simulation,
+	take channel 0 readings per second.
+	If the intensity is consistently high/low for n seconds,
+	execute roof_open/roof_close accordingly
+
+
+
+"""
+
 # Create an ADS1115 ADC (16-bit) instance.
 adc = Adafruit_ADS1x15.ADS1115()
 
