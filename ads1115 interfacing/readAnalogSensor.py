@@ -18,7 +18,6 @@ import Adafruit_ADS1x15
 
 
 
-
 """
 Steps - 
 Putty
@@ -30,7 +29,25 @@ sudo -E apt-get install git python-pip tightvnc
 sudo -E date -s "Oct 30 07:20 2017"
 sudo -E pip install --upgrade pip
 sudo -E pip install adafruit-ads1x15
-Connect VNC
+
+mkdir ~/.config/autostart && sudo nano ~/.config/autostart/tightvnc.desktop
+Add this contents - 
+[Desktop Entry]
+Type=Application
+Name=TightVNC
+Exec=vncserver :1
+StartupNotify=false
+
+Can Connect VNC now Optionally
+
+sudo raspi-config
+1. Expand Filesystem
+2. Advanced-> I2C enable it
+
+sudo apt-get install -y python-smbus i2c-tools
+
+(many commands) Follow this link - https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
+
 
 
 R pi has specific SDA and SCL Pins
@@ -41,7 +58,11 @@ Algo for simulation,
 	If the intensity is consistently high/low for n seconds,
 	execute roof_open/roof_close accordingly
 
+https://raspberrypi.stackexchange.com/questions/39313/do-all-gpio-pins-have-a-internal-pull-up-pull-down-resistors
 
+
+Qs to ask -
+> is adafruit code usable on other sensor
 
 """
 
