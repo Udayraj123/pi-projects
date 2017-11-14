@@ -114,14 +114,14 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
 
 void openIrigation(){
     if(digitalRead(IrigationPIN) == HIGH){
-        Serial.println("Irigation is already open!");
+        Serial.println("Open: Irigation is already open!");
     }
     digitalWrite(IrigationPIN,HIGH);
 }
 
 void openSpray(){
     if(digitalRead(SprayPIN) == HIGH){
-        Serial.println("Spray is already open!");
+        Serial.println("Open: Spray is already open!");
     }
     digitalWrite(SprayPIN,HIGH);
 }
@@ -129,14 +129,14 @@ void openSpray(){
 
 void closeIrigation(){
     if(digitalRead(IrigationPIN) == LOW){
-        Serial.println("Irigation is already closed!");
+        Serial.println("Close : Irigation is already closed!");
     }
     digitalWrite(IrigationPIN,LOW);
 }
 
 void closeSpray(){
     if(digitalRead(SprayPIN) == LOW){
-        Serial.println("Spray is already closed!");
+        Serial.println("Close: Spray is already closed!");
     }
     digitalWrite(SprayPIN,LOW);
 }

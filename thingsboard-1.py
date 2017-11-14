@@ -56,7 +56,7 @@ for i in range(100):
                     data_out=json.dumps(data) #create JSON object
                     print("publish topic",topic, "data out= ",data_out)
                     ret=client.publish(topic,data_out,0)    #publish
-                    time.sleep(1)
+                    time.sleep(5)
                     client.loop()
         else:
             continue
