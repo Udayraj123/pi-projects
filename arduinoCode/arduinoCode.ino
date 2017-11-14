@@ -23,10 +23,19 @@
 //#define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
+/*
+
+Switching - Auto And Manual
+
+
+MQTT Graph
+
+*/
+
 // Temp & Humidity sensor
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
-
+bool automode = true;
 ll threshold = 3000;
 ll optVal = 15000;//light's opt val
 ll adjustLightTime = 5;//interval in seconds
@@ -64,24 +73,34 @@ void setup()
 }
 
 void open() {
-    if(pos>0)
-        return;
-    Serial.println("Opening roof\n");
-    for (pos = 0; pos <= 90; pos += 1) { // goes from 0 degrees to 90 degrees
-    // in steps of 1 degree
-        myservo.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(30);                       // waits 15ms for the servo to reach the position
-    }
+
+moveSmooth(maxAngle);
 }
 
 void close() {
-    if(pos==0)
-        return;
-    Serial.println("Closing roof\n");
-    for (pos = maxAngle; pos > 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-        myservo.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(30);                       // waits 15ms for the servo to reach the position
+
+moveSmooth(minAngle);
+}
+
+void moveSmooth(ll bestAngle){
+  if(bestAngle<=maxAngle && bestAngle >=minAngle){
+    if(bestAngle>pos){
+    for (pos = pos; pos <= bestAngle; pos += 5) {
+        myservo.write(pos);
+        delay(30);
+      }
+      }
+      else{
+      for (pos = pos; pos >= bestAngle; pos -= 5) {
+        myservo.write(pos);
+        delay(30);
+      }
     }
+  }
+  else{
+  Serial.print(bestAngle);
+  Serial.println(": Invalid Angle given!");
+}
 }
 
 void adjustLight(){
@@ -95,10 +114,7 @@ void adjustLight(){
 Serial.print("Finding best angle ");
 ll index = 0,bestIndex,currRead,closestDiff=32000;
   
-  for (pos = pos; pos <= maxAngle; pos += 10) {
-    myservo.write(pos);
-    delay(30);
-  }
+  moveSmooth(maxAngle);
   
   for (pos = maxAngle; pos >= minAngle; pos -= stepAngle) { // goes from 180 degrees to 0 degrees
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -118,21 +134,21 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
     Serial.print(" with Light: ");
     Serial.println(lightReadings[bestIndex]);
 
-    myservo.write(bestAngle);
+  moveSmooth(bestAngle);
 }
 
 void openIrigation(){
     if(digitalRead(IrigationPIN) == HIGH){
         Serial.println("Open: Irigation is already open!");
     }
-    digitalWrite(IrigationPIN,HIGH);
+    analogWrite(IrigationPIN,255);
 }
 
 void openSpray(){
     if(digitalRead(SprayPIN) == HIGH){
         Serial.println("Open: Spray is already open!");
     }
-    digitalWrite(SprayPIN,HIGH);
+    analogWrite(SprayPIN,255);
 }
 
 
@@ -140,14 +156,20 @@ void closeIrigation(){
     if(digitalRead(IrigationPIN) == LOW){
         Serial.println("Close : Irigation is already closed!");
     }
-    digitalWrite(IrigationPIN,LOW);
+    analogWrite(IrigationPIN,0);
 }
 
 void closeSpray(){
     if(digitalRead(SprayPIN) == LOW){
         Serial.println("Close: Spray is already closed!");
     }
-    digitalWrite(SprayPIN,LOW);
+    analogWrite(SprayPIN,0);
+}
+void switchMode(){
+      automode= !automode;
+ Serial.print("**SWITCHING MODE** auto = ");
+    Serial.println(automode);
+
 }
 
 void loop() 
@@ -160,6 +182,7 @@ void loop()
     ll soilDryNess = analogRead(MOISTUREPIN);
 
     time = millis();
+if(automode){
     if((time - light_time) > 1000*adjustLightTime){
         adjustLight();
         light_time = time;
@@ -202,6 +225,14 @@ void loop()
     }
     
     if(Serial.available()){
+      Serial.println("Reading input - ");
+       char readChar = Serial.read ();
+       if(readChar=='m')switchMode();
+    }
+}
+    else{
+
+    if(Serial.available()){
        char readChar = Serial.read ();
         switch(readChar){
             case 'o': openIrigation();break;
@@ -210,9 +241,10 @@ void loop()
             case 'v': closeSpray();break;
             case 'i': open(); break;
             case 'x': close(); break;
+            case 'a': switchMode(); break;
             default:  break;
         }        
     }
-
+}
     delay(1000);
 }
