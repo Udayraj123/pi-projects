@@ -15,7 +15,7 @@
 #define DHTPIN A0     // what pin we're connected to
 #define MOISTUREPIN A8     
 #define SERVOPIN 6     
-#define IrigationPIN 12     
+#define IrigationPIN 11     
 #define SprayPIN 12 // same since we have only one working relay
 
 // Uncomment whatever type you're using!
@@ -37,7 +37,7 @@ ll HumidityTHR = 500; //below this watering will start
 ll pos = 0;    // variable to store the servo position
 ll maxAngle = 120;
 ll minAngle = 0;
-ll stepAngle = 10;
+ll stepAngle = 20;
 const int numReadings = 12;
 ll lightReadings[numReadings];
 
@@ -92,11 +92,17 @@ void adjustLight(){
     move to that angle
 
     */
-Serial.print("Started Adjusting roof to best angle ");
+Serial.print("Finding best angle ");
 ll index = 0,bestIndex,currRead,closestDiff=32000;
-  for (pos = maxAngle; pos >= minAngle; pos -= 10) { // goes from 180 degrees to 0 degrees
+  
+  for (pos = pos; pos <= maxAngle; pos += 10) {
+    myservo.write(pos);
+    delay(30);
+  }
+  
+  for (pos = maxAngle; pos >= minAngle; pos -= stepAngle) { // goes from 180 degrees to 0 degrees
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(400);
+        delay(800);
         currRead =  TSL2561.readVisibleLux();
         lightReadings[index] = currRead;
         if(abs(currRead - optVal) <= closestDiff){
@@ -107,7 +113,7 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
     }
 //adjust to best
     ll bestAngle = maxAngle - stepAngle*bestIndex;
-    Serial.print("Adjusting roof to best angle ");
+    Serial.print("Adjusting roof to angle :");
     Serial.print(bestAngle);
     Serial.print(" with Light: ");
     Serial.println(lightReadings[bestIndex]);
@@ -186,6 +192,7 @@ void loop()
     } 
     else 
     {
+       Serial.println("");
         Serial.print("sensorData: ");  // marker
         Serial.print("Humidity ");Serial.print(h); Serial.print(" ");
         Serial.print("Temperature "); Serial.print(t);Serial.print(" ");
@@ -207,5 +214,5 @@ void loop()
         }        
     }
 
-    delay(500);
+    delay(1000);
 }
