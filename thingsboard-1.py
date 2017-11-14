@@ -1,4 +1,6 @@
-#! python3.4
+import serial
+from time import sleep
+ser = serial.Serial('/dev/ttyS1',9600)
 
 import paho.mqtt.client as mqtt
 import time,json
@@ -42,12 +44,15 @@ while not client.connected_flag: #wait in loop
 time.sleep(3)
 data=dict()
 for i in range(100):
+    sensorData = dict(ser.readline().split(" ")) # take data In from arduino
+    print("sensorData: ",sensorData)
+    
     data["main-light"]="ON"
     data["main-Door"]="OPEN"
     data_out=json.dumps(data) #create JSON object
     print("publish topic",topic, "data out= ",data_out)
     ret=client.publish(topic,data_out,0)    #publish
-    time.sleep(5)
+    time.sleep(2)
     client.loop()
     data["main-light"]="OFF"
     data["main-Door"]="CLOSED"
