@@ -18,7 +18,7 @@ def on_disconnect(client, userdata, rc):
    print("client disconnected ok")
 def on_publish(client, userdata, mid):
     print("In on_pub callback mid= "  ,mid)
-count=0
+
 mqtt.Client.connected_flag=False#create flag in class
 mqtt.Client.suppress_puback_flag=False
 client = mqtt.Client("python1")             #create new instance 
@@ -30,37 +30,40 @@ client.on_publish = on_publish
 broker="demo.thingsboard.io"
 port =1883
 topic="v1/devices/me/telemetry"
-#need to edit user name 
-#username="Apx1r8fNNQbr9JILm3" #device house
+
 username="5a3QkqcfXpYw43FtniCn"
 password=""
-if username !="":
-   pass
+
 client.username_pw_set(username, password)
 client.connect(broker,port)           #establish connection
 while not client.connected_flag: #wait in loop
    client.loop()
    time.sleep(1)
+
 time.sleep(3)
 data=dict()
+print("Init Done. Running main loop -")
+
 for i in range(100):
-    sensorData = dict(ser.readline().split(" ")) # take data In from arduino
-    print("sensorData: ",sensorData)
-    
-    data["main-light"]="ON"
-    data["main-Door"]="OPEN"
-    data_out=json.dumps(data) #create JSON object
-    print("publish topic",topic, "data out= ",data_out)
-    ret=client.publish(topic,data_out,0)    #publish
-    time.sleep(2)
-    client.loop()
-    data["main-light"]="OFF"
-    data["main-Door"]="CLOSED"
-    data_out=json.dumps(data)
-    print("publish topic",topic, "data out= ",data_out)
-    ret=client.publish(topic,data_out,0)    #publish
-    time.sleep(2)
-    client.loop()    
+    try: #serial can timeout
+        sensorData = ser.readline()
+        if("sensorData: " in sensorData):
+            sensorData = sensorData.split(' ');
+            print("sensorData: ",sensorData)
+            for i,val in enumerate(sensorData):
+                if(i>0 and i%2==1):#even are keys, odd are values, SKIP 1st element
+                    data[val] = sensorData[i+1]
+                    data_out=json.dumps(data) #create JSON object
+                    print("publish topic",topic, "data out= ",data_out)
+                    ret=client.publish(topic,data_out,0)    #publish
+                    time.sleep(1)
+                    client.loop()
+        else:
+            continue
+
+    except:
+        print("Error parsing data from Serial!")
+        continue
 
 client.disconnect()
 
