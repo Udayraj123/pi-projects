@@ -181,4 +181,5 @@ void loop()
         Serial.println("");
     }
     Serial.read();
+    delay(500);
 }
