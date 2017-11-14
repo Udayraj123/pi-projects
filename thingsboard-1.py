@@ -30,7 +30,7 @@ port =1883
 topic="v1/devices/me/telemetry"
 #need to edit user name 
 #username="Apx1r8fNNQbr9JILm3" #device house
-username="tuQaiUAtTxq3aUO2pw"
+username="5a3QkqcfXpYw43FtniCn"
 password=""
 if username !="":
    pass
@@ -54,7 +54,7 @@ for i in range(100):
     data_out=json.dumps(data)
     print("publish topic",topic, "data out= ",data_out)
     ret=client.publish(topic,data_out,0)    #publish
-    time.sleep(5)
+    time.sleep(2)
     client.loop()    
 
 client.disconnect()
