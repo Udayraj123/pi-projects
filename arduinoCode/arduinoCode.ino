@@ -37,7 +37,7 @@ ll pos = 0;    // variable to store the servo position
 ll maxAngle = 120;
 ll minAngle = 0;
 ll stepAngle = 10;
-ll numReadings = (maxAngle - minAngle)/stepAngle;
+const int numReadings = 12;
 ll lightReadings[numReadings];
 
 ll time = millis();
@@ -103,11 +103,11 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
         index++;
     }
 //adjust to best
-    ll bestAngle = maxAngle - stepAngle*bestIndex
-    Serial.print("Adjusting roof to best angle ")
-    Serial.print(bestAngle)
-    Serial.print(" with Light: ")
-    Serial.println(lightReadings)
+    ll bestAngle = maxAngle - stepAngle*bestIndex;
+    Serial.print("Adjusting roof to best angle ");
+    Serial.print(bestAngle);
+    Serial.print(" with Light: ");
+    Serial.println(lightReadings[bestIndex]);
 
     myservo.write(bestAngle);
 }
@@ -178,6 +178,7 @@ void loop()
         Serial.print("Temperature "); Serial.print(t);Serial.print(" ");
         Serial.print("soilMoisture ");Serial.print(soilMoisture);Serial.print(" ");
         Serial.print("Light ");Serial.println(light);
+        Serial.println("");
     }
     Serial.read();
 }
