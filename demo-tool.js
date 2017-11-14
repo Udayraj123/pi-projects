@@ -1,7 +1,8 @@
-var mqtt = require('mqtt');
+var mqtt = require('/usr/local/bin/mqtt');
 
 // Don't forget to update accessToken constant with your device access token
 const thingsboardHost = "demo.thingsboard.io";
+//const accessToken = "9mvbiHzfosoSvRaL9yGA";
 const accessToken = "5a3QkqcfXpYw43FtniCn";
 const minTemperature = 17.5, maxTemperature = 30, minHumidity = 12, maxHumidity = 90;
 
