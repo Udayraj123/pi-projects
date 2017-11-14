@@ -15,8 +15,8 @@
 #define DHTPIN A0     // what pin we're connected to
 #define MOISTUREPIN A8     
 #define SERVOPIN 6     
-#define IrigationPIN 7     
-#define SprayPIN 7 // same since we have only one working relay
+#define IrigationPIN 12     
+#define SprayPIN 12 // same since we have only one working relay
 
 // Uncomment whatever type you're using!
 #define DHTTYPE DHT11   // DHT 11 
@@ -31,7 +31,8 @@ ll threshold = 3000;
 ll optVal = 15000;//light's opt val
 ll adjustLightTime = 5;//interval in seconds
 ll minIrigationInterval = 5;//duration of watering in seconds
-ll soilMoistureTHR = 300; //below this watering will start
+ll soilDryNessTHR = 500; //below this watering will start
+ll HumidityTHR = 500; //below this watering will start
 
 ll pos = 0;    // variable to store the servo position
 ll maxAngle = 120;
@@ -42,7 +43,8 @@ ll lightReadings[numReadings];
 
 ll time = millis();
 ll light_time = time;
-ll soilMoisture_time = time;
+ll soilDryNess_time = time;
+ll Humidity_time = time;
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -90,6 +92,7 @@ void adjustLight(){
     move to that angle
 
     */
+Serial.print("Started Adjusting roof to best angle ");
 ll index = 0,bestIndex,currRead,closestDiff=32000;
   for (pos = maxAngle; pos >= minAngle; pos -= 10) { // goes from 180 degrees to 0 degrees
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -148,7 +151,7 @@ void loop()
     float h = dht.readHumidity();
     float t = dht.readTemperature();
     ll light = TSL2561.readVisibleLux();
-    ll soilMoisture = analogRead(MOISTUREPIN);
+    ll soilDryNess = analogRead(MOISTUREPIN);
 
     time = millis();
     if((time - light_time) > 1000*adjustLightTime){
@@ -156,14 +159,24 @@ void loop()
         light_time = time;
     }
 
-    if((time - soilMoisture_time) > 1000*minIrigationInterval){
-        if(soilMoisture < soilMoistureTHR){
+    if((time - soilDryNess_time) > 1000*minIrigationInterval){
+        if(soilDryNess > soilDryNessTHR){
             openIrigation();
         }
         else{
             closeIrigation();
         }
-        soilMoisture_time = time;
+        soilDryNess_time = time;
+    }
+    
+    if((time - Humidity_time) > 1000*minIrigationInterval){
+        if(h < HumidityTHR){
+            openSpray();
+        }
+        else{
+            closeSpray();
+        }
+        Humidity_time = time;
     }
     
     // check if returns are valid, if they are NaN (not a number) then something went wrong!
@@ -176,10 +189,23 @@ void loop()
         Serial.print("sensorData: ");  // marker
         Serial.print("Humidity ");Serial.print(h); Serial.print(" ");
         Serial.print("Temperature "); Serial.print(t);Serial.print(" ");
-        Serial.print("soilMoisture ");Serial.print(soilMoisture);Serial.print(" ");
+        Serial.print("soilDryNess ");Serial.print(soilDryNess);Serial.print(" ");
         Serial.print("Light ");Serial.println(light);
         Serial.println("");
     }
-    Serial.read();
+    
+    if(Serial.available()){
+       char readChar = Serial.read ();
+        switch(readChar){
+            case 'o': openIrigation();break;
+            case 'c': closeIrigation();break;
+            case 'p': openSpray();break;
+            case 'v': closeSpray();break;
+            case 'i': open(); break;
+            case 'x': close(); break;
+            default:  break;
+        }        
+    }
+
     delay(500);
 }
