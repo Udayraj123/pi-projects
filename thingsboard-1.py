@@ -52,9 +52,21 @@ for i in range(100):
             print("sensorData: ",sensorData)
             for i,val in enumerate(sensorData):
                 if(i>0 and i%2==1):#even are keys, odd are values, SKIP 1st element
+                    # refining data
+                    if("umi" in val):
+                        val = "Humidity"
+                    elif("ight" in val):
+                        val = "Light"
+                    elif("emp" in val):
+                        val = "Temperature"
+                    elif("oil" in val):
+                        val = "soilMoisture"
+                    else:
+                        break;
+
                     data[val] = sensorData[i+1]
                     data_out=json.dumps(data) #create JSON object
-                    print("publish topic",topic, "data out= ",data_out)
+                    print("Sending data: ",topic, "data out= ",data_out)
                     ret=client.publish(topic,data_out,0)    #publish
                     time.sleep(5)
                     client.loop()
