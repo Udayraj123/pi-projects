@@ -23,10 +23,19 @@
 //#define DHTTYPE DHT22   // DHT 22  (AM2302)
 //#define DHTTYPE DHT21   // DHT 21 (AM2301)
 
+/*
+
+Switching - Auto And Manual
+
+
+MQTT Graph
+
+*/
+
 // Temp & Humidity sensor
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
-
+bool automode = true;
 ll threshold = 3000;
 ll optVal = 15000;//light's opt val
 ll adjustLightTime = 5;//interval in seconds
@@ -143,6 +152,9 @@ void closeSpray(){
     }
     digitalWrite(SprayPIN,LOW);
 }
+void switchMode(){
+    automode= !automode;
+}
 
 void loop() 
 {
@@ -154,6 +166,7 @@ void loop()
     ll soilDryNess = analogRead(MOISTUREPIN);
 
     time = millis();
+if(automode){
     if((time - light_time) > 1000*adjustLightTime){
         adjustLight();
         light_time = time;
@@ -193,7 +206,9 @@ void loop()
         Serial.print("Light ");Serial.println(light);
         Serial.println("");
     }
-    
+}
+    else{
+
     if(Serial.available()){
        char readChar = Serial.read ();
         switch(readChar){
@@ -203,9 +218,11 @@ void loop()
             case 'v': closeSpray();break;
             case 'i': open(); break;
             case 'x': close(); break;
+            case 's': switchMode(); break;
             default:  break;
         }        
     }
 
+    }
     delay(500);
 }
