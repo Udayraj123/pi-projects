@@ -36,18 +36,23 @@ MQTT Graph
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
 bool automode = true;
-ll threshold = 3000;
-ll optVal = 15000;//light's opt val
+ll optVal = 1500;//light's opt val
+
 ll adjustLightTime = 15;//interval in seconds
 ll minIrigationInterval = 5;//duration of watering in seconds
-ll soilDryNessTHR = 500; //below this watering will start
-ll HumidityTHR = 500; //below this watering will start
+
+bool autoLock = true;
+ll soilDryNessTHR = 550; //below this watering will start
+ll HumidityTHR = 66; //below this watering will start
+
+ll weatherForecastTime = 0;
+ll weatherForecastDuration = 1800;
 
 ll pos = 0;    // variable to store the servo position
-ll maxAngle = 120;
+ll maxAngle = 135;
 ll minAngle = 0;
-ll stepAngle = 20;
-const int numReadings = 6;
+ll stepAngle = 15;
+const int numReadings = 9;
 ll lightReadings[numReadings];
 
 ll time = millis();
@@ -74,11 +79,15 @@ void setup()
 
 void open() {
 
+    Serial.print ("Open Roof ");
+    Serial.println(maxAngle);
 moveSmooth(maxAngle);
 }
 
 void close() {
 
+    Serial.print ("Close Roof ");
+    Serial.println(minAngle);
 moveSmooth(minAngle);
 }
 
@@ -118,7 +127,7 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
   
   for (pos = maxAngle; pos >= minAngle; pos -= stepAngle) { // goes from 180 degrees to 0 degrees
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
-        delay(400);
+        delay(800);
         currRead =  TSL2561.readVisibleLux();
         lightReadings[index] = currRead;
         if(abs(currRead - optVal) <= closestDiff){
@@ -138,30 +147,37 @@ ll index = 0,bestIndex,currRead,closestDiff=32000;
 }
 
 void openIrigation(){
+  
+    Serial.println("Open Irigation ");
     if(digitalRead(IrigationPIN) == HIGH){
-        Serial.println("Open: Irigation is already open!");
+        Serial.println("Irigation is already open!");
     }
     analogWrite(IrigationPIN,255);
 }
 
 void openSpray(){
+  
+    Serial.println("Open Spray");
     if(digitalRead(SprayPIN) == HIGH){
-        Serial.println("Open: Spray is already open!");
+        Serial.println("Spray is already open!");
     }
     analogWrite(SprayPIN,255);
 }
 
 
 void closeIrigation(){
+    Serial.println("Close Irigation");
     if(digitalRead(IrigationPIN) == LOW){
-        Serial.println("Close : Irigation is already closed!");
+        Serial.println("Irigation is already closed!");
     }
     analogWrite(IrigationPIN,0);
 }
 
 void closeSpray(){
+  
+    Serial.println("Close Spray");
     if(digitalRead(SprayPIN) == LOW){
-        Serial.println("Close: Spray is already closed!");
+        Serial.println("Spray is already closed!");
     }
     analogWrite(SprayPIN,0);
 }
@@ -172,6 +188,22 @@ void switchMode(){
 
 }
 
+void lockOn(){
+  time = millis();
+  if(time - weatherForecastTime > weatherForecastDuration){
+    
+    autoLock = true;
+    weatherForecastTime = time;  
+  }
+
+}
+void setAngle(){
+char angle = Serial.read();
+ll angleSet = stepAngle*( angle-'0');
+Serial.print("Setting roof angle to : ");
+Serial.println(angleSet);
+  moveSmooth(angleSet); 
+}
 void loop() 
 {
     // Reading temperature or humidity takes about 250 milliseconds!
@@ -189,7 +221,14 @@ if(automode){
     }
 
     if((time - soilDryNess_time) > 1000*minIrigationInterval){
-        if(soilDryNess > soilDryNessTHR){
+
+  if(time - weatherForecastTime > weatherForecastDuration){
+   Serial.println("Weather Lock Timed out. Resuming Normal Irigation routine"); 
+    autoLock=false; // timeout
+  }
+      if(autoLock==false){
+      if(soilDryNess > soilDryNessTHR){
+          
             openIrigation();
         }
         else{
@@ -197,7 +236,7 @@ if(automode){
         }
         soilDryNess_time = time;
     }
-    
+    }
     if((time - Humidity_time) > 1000*minIrigationInterval){
         if(h < HumidityTHR){
             openSpray();
@@ -225,9 +264,12 @@ if(automode){
     }
     
     if(Serial.available()){
+      
       Serial.println("Reading input - ");
        char readChar = Serial.read ();
+
        if(readChar=='m')switchMode();
+       else if(readChar=='l')lockOn();
     }
 }
     else{
@@ -241,8 +283,10 @@ if(automode){
             case 'v': closeSpray();break;
             case 'i': open(); break;
             case 'x': close(); break;
+            case 's': setAngle(); break;
+
             case 'a': switchMode(); break;
-            default:  break;
+            default: Serial.println("Invalid input!"); break;
         }        
     }
 }

@@ -60,9 +60,9 @@ for i in range(100):
                     elif("emp" in val):
                         val = "Temperature"
                     elif("oil" in val):
-                        val = "soilMoisture"
-                    else:
-                        break;
+                        val = "soilDryness"
+                    #else:
+                    #    continue;
 
                     data[val] = sensorData[i+1]
                     data_out=json.dumps(data) #create JSON object
